@@ -1,0 +1,83 @@
+version: "3.7"
+
+services:
+  # --- KAFKA ---
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: 'broker,controller'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@kafka:9093'
+      KAFKA_LISTENERS: 'INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:9094,CONTROLLER://0.0.0.0:9093'
+      KAFKA_ADVERTISED_LISTENERS: 'INTERNAL://kafka:9092,EXTERNAL://localhost:9094'
+      KAFKA_INTER_BROKER_LISTENER_NAME: 'INTERNAL'
+      KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT'
+      CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
+    ports:
+      - "9092:9092"
+      - "9094:9094"
+
+  # --- POSTGRES ---
+  dagster_db:
+    image: postgres:15
+    container_name: dagster_db
+    environment:
+      POSTGRES_USER: dagster_user
+      POSTGRES_PASSWORD: dagster_password
+      POSTGRES_DB: dagster_db
+    ports:
+      - "5432:5432"
+
+  # --- DAGSTER WEBSERVER ---
+  dagster_webserver:
+    build: 
+      context: ./dagster
+    container_name: dagster_webserver
+    entrypoint: ["dagster-webserver", "-h", "0.0.0.0", "-p", "3000", "-w", "/opt/dagster/dagster_home/workspace.yaml"]
+    volumes:
+      - ./dagster:/opt/dagster/dagster_home
+    environment:
+      - DAGSTER_HOME=/opt/dagster/dagster_home
+      - DAGSTER_POSTGRES_USER=dagster_user
+      - DAGSTER_POSTGRES_PASSWORD=dagster_password
+      - DAGSTER_POSTGRES_DB=dagster_db
+      - AWS_ACCESS_KEY_ID=
+      - AWS_SECRET_ACCESS_KEY=
+      - WEATHER_API_KEY=
+      - SNOWFLAKE_ACCOUNT=PONEVOV-ZF78227
+      - SNOWFLAKE_USER=
+      - SNOWFLAKE_PASSWORD=
+    ports:
+      - "3000:3000"
+    depends_on:
+      - dagster_db
+      - kafka
+
+  # --- DAGSTER DAEMON ---
+  dagster_daemon:
+    build: 
+      context: ./dagster
+    container_name: dagster_daemon
+    entrypoint: ["dagster-daemon", "run", "-w", "/opt/dagster/dagster_home/workspace.yaml"]    
+    volumes:
+      - ./dagster:/opt/dagster/dagster_home
+    environment:
+      - DAGSTER_HOME=/opt/dagster/dagster_home
+      - DAGSTER_POSTGRES_USER=dagster_user
+      - DAGSTER_POSTGRES_PASSWORD=dagster_password
+      - DAGSTER_POSTGRES_DB=dagster_db
+      - AWS_ACCESS_KEY_ID=
+      - AWS_SECRET_ACCESS_KEY=
+      - WEATHER_API_KEY=
+      - SNOWFLAKE_ACCOUNT=PONEVOV-ZF78227
+      - SNOWFLAKE_USER=
+      - SNOWFLAKE_PASSWORD=
+    depends_on:
+      - dagster_db
+      - kafka
+
+networks:
+  default:
+    name: dagster_network

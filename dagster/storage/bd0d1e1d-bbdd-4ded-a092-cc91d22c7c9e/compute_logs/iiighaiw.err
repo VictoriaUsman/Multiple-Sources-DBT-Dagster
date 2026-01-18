@@ -1,0 +1,45 @@
+2026-01-17 10:25:17 +0000 - dagster - DEBUG - __ASSET_JOB - bd0d1e1d-bbdd-4ded-a092-cc91d22c7c9e - 310 - LOGS_CAPTURED - Started capturing logs in process (pid: 310).
+2026-01-17 10:25:17 +0000 - dagster - DEBUG - __ASSET_JOB - bd0d1e1d-bbdd-4ded-a092-cc91d22c7c9e - 310 - startup_cities_to_snowflake - STEP_START - Started execution of step "startup_cities_to_snowflake".
+2026-01-17 10:25:17 +0000 - dagster - INFO - __ASSET_JOB - bd0d1e1d-bbdd-4ded-a092-cc91d22c7c9e - startup_cities_to_snowflake - Connecting to Filess.io MongoDB...
+2026-01-17 10:25:19 +0000 - dagster - INFO - __ASSET_JOB - bd0d1e1d-bbdd-4ded-a092-cc91d22c7c9e - startup_cities_to_snowflake - Creating Snowflake Engine and uploading data...
+2026-01-17 10:25:22 +0000 - dagster - ERROR - __ASSET_JOB - bd0d1e1d-bbdd-4ded-a092-cc91d22c7c9e - 310 - startup_cities_to_snowflake - STEP_FAILURE - Execution of step "startup_cities_to_snowflake" failed.
+
+dagster._core.errors.DagsterExecutionStepExecutionError: Error occurred while executing op "startup_cities_to_snowflake"::
+
+sqlalchemy.exc.InvalidRequestError: Could not reflect: requested table(s) not available in Engine(snowflake://iantrisdc:***@PONEVOV-ZF78227/ultimate/staging?warehouse=ultimate): (STARTUP_CITIES)
+
+Stack Trace:
+  File "/usr/local/lib/python3.12/site-packages/dagster/_core/execution/plan/utils.py", line 57, in op_execution_error_boundary
+    yield
+  File "/usr/local/lib/python3.12/site-packages/dagster/_utils/__init__.py", line 394, in iterate_with_context
+    next_output = next(iterator)
+                  ^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/dagster/_core/execution/plan/compute_generator.py", line 135, in _coerce_op_compute_fn_to_iterator
+    result = invoke_compute_fn(
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/dagster/_core/execution/plan/compute_generator.py", line 115, in invoke_compute_fn
+    return fn(context, **args_to_pass) if context_arg_provided else fn(**args_to_pass)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/dagster/dagster_home/assets.py", line 151, in startup_cities_to_snowflake
+    df.to_sql('STARTUP_CITIES', engine, if_exists='replace', index=False, method='multi')
+  File "/usr/local/lib/python3.12/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pandas/core/generic.py", line 3109, in to_sql
+    return sql.to_sql(
+           ^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pandas/io/sql.py", line 844, in to_sql
+    return pandas_sql.to_sql(
+           ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pandas/io/sql.py", line 2020, in to_sql
+    table = self.prep_table(
+            ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pandas/io/sql.py", line 1924, in prep_table
+    table.create()
+  File "/usr/local/lib/python3.12/site-packages/pandas/io/sql.py", line 990, in create
+    self.pd_sql.drop_table(self.name, self.schema)
+  File "/usr/local/lib/python3.12/site-packages/pandas/io/sql.py", line 2071, in drop_table
+    self.meta.reflect(
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/sql/schema.py", line 5877, in reflect
+    raise exc.InvalidRequestError(
+

@@ -1,0 +1,1 @@
+select * from {{source('snowflake_staging', 'VOTERTABLE') }}

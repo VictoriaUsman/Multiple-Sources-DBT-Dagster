@@ -1,0 +1,10 @@
+2026-01-17 07:17:16 +0000 - dagster - DEBUG - __ASSET_JOB - 6cb0d628-29fa-4802-8e48-dfcb981aaafe - 8894 - LOGS_CAPTURED - Started capturing logs in process (pid: 8894).
+2026-01-17 07:17:16 +0000 - dagster - DEBUG - __ASSET_JOB - 6cb0d628-29fa-4802-8e48-dfcb981aaafe - 8894 - weather_snapshots - STEP_START - Started execution of step "weather_snapshots".
+2026-01-17 07:17:16 +0000 - dagster - DEBUG - __ASSET_JOB - 6cb0d628-29fa-4802-8e48-dfcb981aaafe - weather_snapshots - Loading file from: /opt/dagster/dagster_home/storage/unique_cities using PickledObjectFilesystemIOManager...
+2026-01-17 07:17:16 +0000 - dagster - DEBUG - __ASSET_JOB - 6cb0d628-29fa-4802-8e48-dfcb981aaafe - 8894 - weather_snapshots - LOADED_INPUT - Loaded input "unique_cities" using input manager "io_manager", from output "result" of step "unique_cities"
+2026-01-17 07:17:16 +0000 - dagster - DEBUG - __ASSET_JOB - 6cb0d628-29fa-4802-8e48-dfcb981aaafe - 8894 - weather_snapshots - STEP_INPUT - Got input "unique_cities" of type "[Any]". (Type check passed).
+2026-01-17 07:17:18 +0000 - dagster - DEBUG - __ASSET_JOB - 6cb0d628-29fa-4802-8e48-dfcb981aaafe - 8894 - weather_snapshots - STEP_OUTPUT - Yielded output "result" of type "Any". (Type check passed).
+2026-01-17 07:17:18 +0000 - dagster - DEBUG - __ASSET_JOB - 6cb0d628-29fa-4802-8e48-dfcb981aaafe - weather_snapshots - Writing file at: /opt/dagster/dagster_home/storage/weather_snapshots using PickledObjectFilesystemIOManager...
+2026-01-17 07:17:18 +0000 - dagster - DEBUG - __ASSET_JOB - 6cb0d628-29fa-4802-8e48-dfcb981aaafe - 8894 - weather_snapshots - ASSET_MATERIALIZATION - Materialized value weather_snapshots.
+2026-01-17 07:17:18 +0000 - dagster - DEBUG - __ASSET_JOB - 6cb0d628-29fa-4802-8e48-dfcb981aaafe - 8894 - weather_snapshots - HANDLED_OUTPUT - Handled output "result" using IO manager "io_manager"
+2026-01-17 07:17:18 +0000 - dagster - DEBUG - __ASSET_JOB - 6cb0d628-29fa-4802-8e48-dfcb981aaafe - 8894 - weather_snapshots - STEP_SUCCESS - Finished execution of step "weather_snapshots" in 1.38s.

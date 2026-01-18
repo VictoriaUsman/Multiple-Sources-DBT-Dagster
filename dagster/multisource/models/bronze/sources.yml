@@ -1,0 +1,23 @@
+version: 2
+
+sources:
+  - name: snowflake_staging
+    database: ULTIMATE
+    schema: STAGING
+    description: "Raw data landing zone for Kafka and External API snapshots."
+    tables:
+      - name: STARTUP_CITIES
+        description: "Data from the Flask/Kafka stream."
+        columns:
+          - name: NAME
+            tests:
+              - not_null
+
+      - name: VOTERTABLE
+        description: "Table containing voter registration information."
+
+      - name: WEATHER_SNAPSHOTS
+        description: "Periodic snapshots from the Weather API."
+        columns:
+          - name: CITY
+          - name: TEMPERATURE

@@ -1,0 +1,76 @@
+2026-01-17 10:46:11 +0000 - dagster - DEBUG - __ASSET_JOB - 01329ce8-5389-4eb7-9f70-0947a0e2107a - 14665 - LOGS_CAPTURED - Started capturing logs in process (pid: 14665).
+2026-01-17 10:46:11 +0000 - dagster - DEBUG - __ASSET_JOB - 01329ce8-5389-4eb7-9f70-0947a0e2107a - 14665 - startup_cities_to_snowflake - STEP_START - Started execution of step "startup_cities_to_snowflake".
+2026-01-17 10:46:11 +0000 - dagster - INFO - __ASSET_JOB - 01329ce8-5389-4eb7-9f70-0947a0e2107a - startup_cities_to_snowflake - Extracting data from MongoDB...
+2026-01-17 10:46:13 +0000 - dagster - INFO - __ASSET_JOB - 01329ce8-5389-4eb7-9f70-0947a0e2107a - startup_cities_to_snowflake - Bypassing reflection and loading data...
+2026-01-17 10:46:15 +0000 - dagster - ERROR - __ASSET_JOB - 01329ce8-5389-4eb7-9f70-0947a0e2107a - 14665 - startup_cities_to_snowflake - STEP_FAILURE - Execution of step "startup_cities_to_snowflake" failed.
+
+dagster._core.errors.DagsterExecutionStepExecutionError: Error occurred while executing op "startup_cities_to_snowflake"::
+
+sqlalchemy.exc.ProgrammingError: (snowflake.connector.errors.ProgrammingError) 001003 (42000): SQL compilation error:
+syntax error line 1 at position 74 unexpected '0'.
+[SQL: CREATE OR REPLACE TABLE ULTIMATE.STAGING.STARTUP_CITIES AS SELECT * FROM (0) WHERE 1=0]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+
+Stack Trace:
+  File "/usr/local/lib/python3.12/site-packages/dagster/_core/execution/plan/utils.py", line 57, in op_execution_error_boundary
+    yield
+  File "/usr/local/lib/python3.12/site-packages/dagster/_utils/__init__.py", line 394, in iterate_with_context
+    next_output = next(iterator)
+                  ^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/dagster/_core/execution/plan/compute_generator.py", line 135, in _coerce_op_compute_fn_to_iterator
+    result = invoke_compute_fn(
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/dagster/_core/execution/plan/compute_generator.py", line 115, in invoke_compute_fn
+    return fn(context, **args_to_pass) if context_arg_provided else fn(**args_to_pass)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/dagster/dagster_home/assets.py", line 148, in startup_cities_to_snowflake
+    conn.execute(text(f"CREATE OR REPLACE TABLE {sf_db}.{sf_schema}.STARTUP_CITIES AS SELECT * FROM ({df.head(0).to_sql('temp', engine, index=False, if_exists='replace')}) WHERE 1=0"))
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/cursor.py", line 1142, in execute
+    Error.errorhandler_wrapper(self.connection, self, error_class, errvalue)
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/errors.py", line 298, in errorhandler_wrapper
+    handed_over = Error.hand_to_other_handler(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/errors.py", line 354, in hand_to_other_handler
+    cursor.errorhandler(connection, cursor, error_class, error_value)
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/errors.py", line 229, in default_errorhandler
+    raise error_class(
+
+The above exception was caused by the following exception:
+snowflake.connector.errors.ProgrammingError: 001003 (42000): SQL compilation error:
+syntax error line 1 at position 74 unexpected '0'.
+
+Stack Trace:
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/cursor.py", line 1142, in execute
+    Error.errorhandler_wrapper(self.connection, self, error_class, errvalue)
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/errors.py", line 298, in errorhandler_wrapper
+    handed_over = Error.hand_to_other_handler(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/errors.py", line 354, in hand_to_other_handler
+    cursor.errorhandler(connection, cursor, error_class, error_value)
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/errors.py", line 229, in default_errorhandler
+    raise error_class(
+

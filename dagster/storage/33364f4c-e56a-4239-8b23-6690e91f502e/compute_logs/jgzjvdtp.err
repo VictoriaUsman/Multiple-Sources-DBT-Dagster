@@ -1,0 +1,8 @@
+2026-01-17 10:02:00 +0000 - dagster - DEBUG - __ASSET_JOB - 33364f4c-e56a-4239-8b23-6690e91f502e - 3336 - LOGS_CAPTURED - Started capturing logs in process (pid: 3336).
+2026-01-17 10:02:00 +0000 - dagster - DEBUG - __ASSET_JOB - 33364f4c-e56a-4239-8b23-6690e91f502e - 3336 - startup_cities_data - STEP_START - Started execution of step "startup_cities_data".
+2026-01-17 10:02:02 +0000 - dagster - INFO - __ASSET_JOB - 33364f4c-e56a-4239-8b23-6690e91f502e - startup_cities_data - Columns found in Mongo: ['_id', 'position', 'change_in_position_from_2020', 'city', 'country', 'total_score', 'quatity_score', 'quality_score', 'business_score', 'sign_of_change_in_position']
+2026-01-17 10:02:02 +0000 - dagster - DEBUG - __ASSET_JOB - 33364f4c-e56a-4239-8b23-6690e91f502e - 3336 - startup_cities_data - STEP_OUTPUT - Yielded output "result" of type "Any". (Type check passed).
+2026-01-17 10:02:02 +0000 - dagster - DEBUG - __ASSET_JOB - 33364f4c-e56a-4239-8b23-6690e91f502e - startup_cities_data - Writing file at: /opt/dagster/dagster_home/storage/startup_cities_data using PickledObjectFilesystemIOManager...
+2026-01-17 10:02:02 +0000 - dagster - DEBUG - __ASSET_JOB - 33364f4c-e56a-4239-8b23-6690e91f502e - 3336 - startup_cities_data - ASSET_MATERIALIZATION - Materialized value startup_cities_data.
+2026-01-17 10:02:02 +0000 - dagster - DEBUG - __ASSET_JOB - 33364f4c-e56a-4239-8b23-6690e91f502e - 3336 - startup_cities_data - HANDLED_OUTPUT - Handled output "result" using IO manager "io_manager"
+2026-01-17 10:02:02 +0000 - dagster - DEBUG - __ASSET_JOB - 33364f4c-e56a-4239-8b23-6690e91f502e - 3336 - startup_cities_data - STEP_SUCCESS - Finished execution of step "startup_cities_data" in 1.88s.

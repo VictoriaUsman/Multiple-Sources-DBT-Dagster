@@ -1,0 +1,33 @@
+2026-01-18 04:19:13 +0000 - dagster - DEBUG - __ASSET_JOB - e47b0c00-99c3-40d5-b29e-5dc2c317a473 - 33794 - LOGS_CAPTURED - Started capturing logs in process (pid: 33794).
+2026-01-18 04:19:13 +0000 - dagster - DEBUG - __ASSET_JOB - e47b0c00-99c3-40d5-b29e-5dc2c317a473 - 33794 - unique_cities - STEP_START - Started execution of step "unique_cities".
+2026-01-18 04:19:14 +0000 - dagster - ERROR - __ASSET_JOB - e47b0c00-99c3-40d5-b29e-5dc2c317a473 - 33794 - unique_cities - STEP_FAILURE - Execution of step "unique_cities" failed.
+
+dagster._core.errors.DagsterExecutionStepExecutionError: Error occurred while executing op "unique_cities"::
+
+snowflake.connector.errors.ProgrammingError: 002003 (42S02): SQL compilation error:
+Object 'STARTUP_CITIES' does not exist or not authorized.
+
+Stack Trace:
+  File "/usr/local/lib/python3.12/site-packages/dagster/_core/execution/plan/utils.py", line 57, in op_execution_error_boundary
+    yield
+  File "/usr/local/lib/python3.12/site-packages/dagster/_utils/__init__.py", line 394, in iterate_with_context
+    next_output = next(iterator)
+                  ^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/dagster/_core/execution/plan/compute_generator.py", line 135, in _coerce_op_compute_fn_to_iterator
+    result = invoke_compute_fn(
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/dagster/_core/execution/plan/compute_generator.py", line 115, in invoke_compute_fn
+    return fn(context, **args_to_pass) if context_arg_provided else fn(**args_to_pass)
+                                                                    ^^^^^^^^^^^^^^^^^^
+  File "/opt/dagster/dagster_home/assets.py", line 17, in unique_cities
+    cursor.execute("SELECT DISTINCT city from startup_cities WHERE city IS NOT NULL;")
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/cursor.py", line 1142, in execute
+    Error.errorhandler_wrapper(self.connection, self, error_class, errvalue)
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/errors.py", line 298, in errorhandler_wrapper
+    handed_over = Error.hand_to_other_handler(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/errors.py", line 354, in hand_to_other_handler
+    cursor.errorhandler(connection, cursor, error_class, error_value)
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/errors.py", line 229, in default_errorhandler
+    raise error_class(
+

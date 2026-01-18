@@ -1,0 +1,36 @@
+2026-01-17 07:17:20 +0000 - dagster - DEBUG - __ASSET_JOB - 6cb0d628-29fa-4802-8e48-dfcb981aaafe - 8938 - LOGS_CAPTURED - Started capturing logs in process (pid: 8938).
+2026-01-17 07:17:20 +0000 - dagster - DEBUG - __ASSET_JOB - 6cb0d628-29fa-4802-8e48-dfcb981aaafe - 8938 - s3_to_snowflake_weather - STEP_START - Started execution of step "s3_to_snowflake_weather".
+2026-01-17 07:17:20 +0000 - dagster - DEBUG - __ASSET_JOB - 6cb0d628-29fa-4802-8e48-dfcb981aaafe - s3_to_snowflake_weather - Loading file from: /opt/dagster/dagster_home/storage/weather_snapshots using PickledObjectFilesystemIOManager...
+2026-01-17 07:17:20 +0000 - dagster - DEBUG - __ASSET_JOB - 6cb0d628-29fa-4802-8e48-dfcb981aaafe - 8938 - s3_to_snowflake_weather - LOADED_INPUT - Loaded input "weather_snapshots" using input manager "io_manager", from output "result" of step "weather_snapshots"
+2026-01-17 07:17:20 +0000 - dagster - DEBUG - __ASSET_JOB - 6cb0d628-29fa-4802-8e48-dfcb981aaafe - 8938 - s3_to_snowflake_weather - STEP_INPUT - Got input "weather_snapshots" of type "[Any]". (Type check passed).
+2026-01-17 07:17:21 +0000 - dagster - ERROR - __ASSET_JOB - 6cb0d628-29fa-4802-8e48-dfcb981aaafe - 8938 - s3_to_snowflake_weather - STEP_FAILURE - Execution of step "s3_to_snowflake_weather" failed.
+
+dagster._core.errors.DagsterExecutionStepExecutionError: Error occurred while executing op "s3_to_snowflake_weather"::
+
+snowflake.connector.errors.ProgrammingError: 001757 (42601): SQL compilation error:
+Table 'WEATHER_SNAPSHOTS' does not exist
+
+Stack Trace:
+  File "/usr/local/lib/python3.12/site-packages/dagster/_core/execution/plan/utils.py", line 57, in op_execution_error_boundary
+    yield
+  File "/usr/local/lib/python3.12/site-packages/dagster/_utils/__init__.py", line 394, in iterate_with_context
+    next_output = next(iterator)
+                  ^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/dagster/_core/execution/plan/compute_generator.py", line 135, in _coerce_op_compute_fn_to_iterator
+    result = invoke_compute_fn(
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/dagster/_core/execution/plan/compute_generator.py", line 115, in invoke_compute_fn
+    return fn(context, **args_to_pass) if context_arg_provided else fn(**args_to_pass)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/dagster/dagster_home/assets.py", line 89, in s3_to_snowflake_weather
+    cursor.execute(copy_sql)
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/cursor.py", line 1142, in execute
+    Error.errorhandler_wrapper(self.connection, self, error_class, errvalue)
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/errors.py", line 298, in errorhandler_wrapper
+    handed_over = Error.hand_to_other_handler(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/errors.py", line 354, in hand_to_other_handler
+    cursor.errorhandler(connection, cursor, error_class, error_value)
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/errors.py", line 229, in default_errorhandler
+    raise error_class(
+

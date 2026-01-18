@@ -1,0 +1,7 @@
+2026-01-18 04:21:34 +0000 - dagster - DEBUG - __ASSET_JOB - f90ca516-e163-4be3-96e9-3d7a9348f6d0 - 35424 - LOGS_CAPTURED - Started capturing logs in process (pid: 35424).
+2026-01-18 04:21:34 +0000 - dagster - DEBUG - __ASSET_JOB - f90ca516-e163-4be3-96e9-3d7a9348f6d0 - 35424 - unique_cities - STEP_START - Started execution of step "unique_cities".
+2026-01-18 04:21:36 +0000 - dagster - DEBUG - __ASSET_JOB - f90ca516-e163-4be3-96e9-3d7a9348f6d0 - 35424 - unique_cities - STEP_OUTPUT - Yielded output "result" of type "Any". (Type check passed).
+2026-01-18 04:21:36 +0000 - dagster - DEBUG - __ASSET_JOB - f90ca516-e163-4be3-96e9-3d7a9348f6d0 - unique_cities - Writing file at: /opt/dagster/dagster_home/storage/unique_cities using PickledObjectFilesystemIOManager...
+2026-01-18 04:21:36 +0000 - dagster - DEBUG - __ASSET_JOB - f90ca516-e163-4be3-96e9-3d7a9348f6d0 - 35424 - unique_cities - ASSET_MATERIALIZATION - Materialized value unique_cities.
+2026-01-18 04:21:36 +0000 - dagster - DEBUG - __ASSET_JOB - f90ca516-e163-4be3-96e9-3d7a9348f6d0 - 35424 - unique_cities - HANDLED_OUTPUT - Handled output "result" using IO manager "io_manager"
+2026-01-18 04:21:36 +0000 - dagster - DEBUG - __ASSET_JOB - f90ca516-e163-4be3-96e9-3d7a9348f6d0 - 35424 - unique_cities - STEP_SUCCESS - Finished execution of step "unique_cities" in 1.83s.

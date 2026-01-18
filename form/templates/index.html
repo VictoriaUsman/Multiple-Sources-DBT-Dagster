@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Ian Tristan Form</title>
+    <style>
+        body { font-family: sans-serif; margin: 50px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; }
+        input { padding: 8px; width: 300px; }
+        .btn { background-color: #007bff; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>Ian Tristan's Best City Voting Form</h2>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          <p style="color: green;">{{ message }}</p>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="">
+        {{ form.hidden_tag() }} <div class="form-group">
+            {{ form.hostname.label }}<br>
+            {{ form.hostname() }}
+        </div>
+
+        <div class="form-group">
+            {{ form.country.label }}<br>
+            {{ form.country() }}
+        </div>
+
+        <div class="form-group">
+            {{ form.city.label }}<br>
+            {{ form.city() }}
+        </div>
+
+        <div class="form-group">
+            {{ form.contact_number.label }}<br>
+            {{ form.contact_number() }}
+        </div>
+
+        <div>
+            {{ form.submit(class="btn") }}
+        </div>
+    </form>
+</body>
+</html>

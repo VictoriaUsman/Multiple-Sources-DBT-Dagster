@@ -1,0 +1,32 @@
+run_storage:
+  module: dagster_postgres
+  class: PostgresRunStorage
+  config:
+    postgres_db:
+      hostname: dagster_db
+      username: dagster_user
+      password: dagster_password
+      db_name: dagster_db
+      port: 5432
+
+event_log_storage:
+  module: dagster_postgres
+  class: PostgresEventLogStorage
+  config:
+    postgres_db:
+      hostname: dagster_db
+      username: dagster_user
+      password: dagster_password
+      db_name: dagster_db
+      port: 5432
+
+schedule_storage:
+  module: dagster_postgres
+  class: PostgresScheduleStorage
+  config:
+    postgres_db:
+      hostname: dagster_db
+      username: dagster_user
+      password: dagster_password
+      db_name: dagster_db
+      port: 5432

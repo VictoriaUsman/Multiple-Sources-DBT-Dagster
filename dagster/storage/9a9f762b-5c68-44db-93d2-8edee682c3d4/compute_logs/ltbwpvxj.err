@@ -1,0 +1,26 @@
+2026-01-17 10:19:00 +0000 - dagster - DEBUG - __ASSET_JOB - 9a9f762b-5c68-44db-93d2-8edee682c3d4 - 376 - LOGS_CAPTURED - Started capturing logs in process (pid: 376).
+2026-01-17 10:19:00 +0000 - dagster - DEBUG - __ASSET_JOB - 9a9f762b-5c68-44db-93d2-8edee682c3d4 - 376 - startup_cities_to_snowflake - STEP_START - Started execution of step "startup_cities_to_snowflake".
+2026-01-17 10:19:00 +0000 - dagster - INFO - __ASSET_JOB - 9a9f762b-5c68-44db-93d2-8edee682c3d4 - startup_cities_to_snowflake - Connecting to Filess.io MongoDB...
+2026-01-17 10:19:02 +0000 - dagster - INFO - __ASSET_JOB - 9a9f762b-5c68-44db-93d2-8edee682c3d4 - startup_cities_to_snowflake - Creating Snowflake Engine and uploading data...
+2026-01-17 10:19:02 +0000 - dagster - ERROR - __ASSET_JOB - 9a9f762b-5c68-44db-93d2-8edee682c3d4 - 376 - startup_cities_to_snowflake - STEP_FAILURE - Execution of step "startup_cities_to_snowflake" failed.
+
+dagster._core.errors.DagsterExecutionStepExecutionError: Error occurred while executing op "startup_cities_to_snowflake"::
+
+NameError: name 'create_engine' is not defined
+
+Stack Trace:
+  File "/usr/local/lib/python3.12/site-packages/dagster/_core/execution/plan/utils.py", line 57, in op_execution_error_boundary
+    yield
+  File "/usr/local/lib/python3.12/site-packages/dagster/_utils/__init__.py", line 394, in iterate_with_context
+    next_output = next(iterator)
+                  ^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/dagster/_core/execution/plan/compute_generator.py", line 135, in _coerce_op_compute_fn_to_iterator
+    result = invoke_compute_fn(
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/dagster/_core/execution/plan/compute_generator.py", line 115, in invoke_compute_fn
+    return fn(context, **args_to_pass) if context_arg_provided else fn(**args_to_pass)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/dagster/dagster_home/assets.py", line 146, in startup_cities_to_snowflake
+    engine = create_engine(connection_string)
+             ^^^^^^^^^^^^^
+

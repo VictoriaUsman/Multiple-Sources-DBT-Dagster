@@ -1,0 +1,14 @@
+Running with dbt=1.11.2
+Registered adapter: snowflake=1.11.1
+Found 7 models, 1 test, 3 sources, 524 macros
+
+Concurrency: 2 threads (target='dev')
+
+1 of 1 START sql table model silver.silver_weather ............................. [RUN]
+1 of 1 OK created sql table model silver.silver_weather ........................ [[32mSUCCESS 1[0m in 0.77s]
+
+Finished running 1 table model in 0 hours 0 minutes and 2.69 seconds (2.69s).
+
+[32mCompleted successfully[0m
+
+Done. PASS=1 WARN=0 ERROR=0 SKIP=0 NO-OP=0 TOTAL=1

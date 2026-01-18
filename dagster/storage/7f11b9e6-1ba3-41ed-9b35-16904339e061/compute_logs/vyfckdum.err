@@ -1,0 +1,10 @@
+2026-01-18 04:22:20 +0000 - dagster - DEBUG - __ASSET_JOB - 7f11b9e6-1ba3-41ed-9b35-16904339e061 - 35972 - LOGS_CAPTURED - Started capturing logs in process (pid: 35972).
+2026-01-18 04:22:20 +0000 - dagster - DEBUG - __ASSET_JOB - 7f11b9e6-1ba3-41ed-9b35-16904339e061 - 35972 - weather_snapshots - STEP_START - Started execution of step "weather_snapshots".
+2026-01-18 04:22:20 +0000 - dagster - DEBUG - __ASSET_JOB - 7f11b9e6-1ba3-41ed-9b35-16904339e061 - weather_snapshots - Loading file from: /opt/dagster/dagster_home/storage/unique_cities using PickledObjectFilesystemIOManager...
+2026-01-18 04:22:20 +0000 - dagster - DEBUG - __ASSET_JOB - 7f11b9e6-1ba3-41ed-9b35-16904339e061 - 35972 - weather_snapshots - LOADED_INPUT - Loaded input "unique_cities" using input manager "io_manager"
+2026-01-18 04:22:20 +0000 - dagster - DEBUG - __ASSET_JOB - 7f11b9e6-1ba3-41ed-9b35-16904339e061 - 35972 - weather_snapshots - STEP_INPUT - Got input "unique_cities" of type "[Any]". (Type check passed).
+2026-01-18 04:22:24 +0000 - dagster - DEBUG - __ASSET_JOB - 7f11b9e6-1ba3-41ed-9b35-16904339e061 - 35972 - weather_snapshots - STEP_OUTPUT - Yielded output "result" of type "Any". (Type check passed).
+2026-01-18 04:22:24 +0000 - dagster - DEBUG - __ASSET_JOB - 7f11b9e6-1ba3-41ed-9b35-16904339e061 - weather_snapshots - Writing file at: /opt/dagster/dagster_home/storage/weather_snapshots using PickledObjectFilesystemIOManager...
+2026-01-18 04:22:24 +0000 - dagster - DEBUG - __ASSET_JOB - 7f11b9e6-1ba3-41ed-9b35-16904339e061 - 35972 - weather_snapshots - ASSET_MATERIALIZATION - Materialized value weather_snapshots.
+2026-01-18 04:22:24 +0000 - dagster - DEBUG - __ASSET_JOB - 7f11b9e6-1ba3-41ed-9b35-16904339e061 - 35972 - weather_snapshots - HANDLED_OUTPUT - Handled output "result" using IO manager "io_manager"
+2026-01-18 04:22:24 +0000 - dagster - DEBUG - __ASSET_JOB - 7f11b9e6-1ba3-41ed-9b35-16904339e061 - 35972 - weather_snapshots - STEP_SUCCESS - Finished execution of step "weather_snapshots" in 3.56s.

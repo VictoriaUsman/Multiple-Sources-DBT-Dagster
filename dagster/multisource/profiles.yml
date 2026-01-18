@@ -1,0 +1,13 @@
+ultimate_project_profile:
+  outputs:
+    dev:
+      type: snowflake
+      account: PONEVOV-ZF78227
+      user: iantrisdc
+      password: NL6pGafqzKy6Xrj
+      role: ACCOUNTADMIN
+      warehouse: ULTIMATE
+      database: ULTIMATE
+      schema: STAGING
+      threads: 2
+  target: dev

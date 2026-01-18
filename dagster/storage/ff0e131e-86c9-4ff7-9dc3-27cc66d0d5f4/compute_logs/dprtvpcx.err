@@ -1,0 +1,101 @@
+2026-01-17 10:52:15 +0000 - dagster - DEBUG - __ASSET_JOB - ff0e131e-86c9-4ff7-9dc3-27cc66d0d5f4 - 18756 - LOGS_CAPTURED - Started capturing logs in process (pid: 18756).
+2026-01-17 10:52:15 +0000 - dagster - DEBUG - __ASSET_JOB - ff0e131e-86c9-4ff7-9dc3-27cc66d0d5f4 - 18756 - startup_cities_to_snowflake - STEP_START - Started execution of step "startup_cities_to_snowflake".
+2026-01-17 10:52:15 +0000 - dagster - INFO - __ASSET_JOB - ff0e131e-86c9-4ff7-9dc3-27cc66d0d5f4 - startup_cities_to_snowflake - Connecting to MongoDB...
+2026-01-17 10:52:18 +0000 - dagster - INFO - __ASSET_JOB - ff0e131e-86c9-4ff7-9dc3-27cc66d0d5f4 - startup_cities_to_snowflake - Ensuring table structure exists in Snowflake...
+2026-01-17 10:52:18 +0000 - dagster - INFO - __ASSET_JOB - ff0e131e-86c9-4ff7-9dc3-27cc66d0d5f4 - startup_cities_to_snowflake - Inserting data into STARTUP_CITIES...
+2026-01-17 10:52:19 +0000 - dagster - ERROR - __ASSET_JOB - ff0e131e-86c9-4ff7-9dc3-27cc66d0d5f4 - 18756 - startup_cities_to_snowflake - STEP_FAILURE - Execution of step "startup_cities_to_snowflake" failed.
+
+dagster._core.errors.DagsterExecutionStepExecutionError: Error occurred while executing op "startup_cities_to_snowflake"::
+
+sqlalchemy.exc.ProgrammingError: (snowflake.connector.errors.ProgrammingError) 000904 (42000): SQL compilation error: error line 1 at position 52
+invalid identifier 'CHANGE_IN_POSITION_FROM_2020'
+[SQL: INSERT INTO "STAGING"."STARTUP_CITIES" ("POSITION", "CHANGE_IN_POSITION_FROM_2020", "CITY", "COUNTRY", "TOTAL_SCORE", "QUANTITY_SCORE", "QUALITY_SCORE", "BUSINESS_SCORE", "SIGN_OF_CHANGE_IN_POSITION") VALUES (%(POSITION_m0)s, %(CHANGE_IN_POSITION_FROM_2020_m0)s, %(CITY_m0)s, %(COUNTRY_m0)s, %(TOTAL_SCORE_m0)s, %(QUANTITY_SCORE_m0)s, %(QUALITY_SCORE_m0)s, %(BUSINESS_SCORE_m0)s, %(SIGN_OF_CHANGE_IN_POSITION_m0)s), (%(POSITION_m1)s, %(CHANGE_IN_POSITION_FROM_2020_m1)s, %(CITY_m1)s, %(COUNTRY_m1)s, %(TOTAL_SCORE_m1)s, %(QUANTITY_SCORE_m1)s, %(QUALITY_SCORE_m1)s, %(BUSINESS_SCORE_m1)s, %(SIGN_OF_CHANGE_IN_POSITION_m1)s), (%(POSITION_m2)s, %(CHANGE_IN_POSITION_FROM_2020_m2)s, %(CITY_m2)s, %(COUNTRY_m2)s, %(TOTAL_SCORE_m2)s, %(QUANTITY_SCORE_m2)s, %(QUALITY_SCORE_m2)s, %(BUSINESS_SCORE_m2)s, %(SIGN_OF_CHANGE_IN_POSITION_m2)s), (%(POSITION_m3)s, %(CHANGE_IN_POSITION_FROM_2020_m3)s, %(CITY_m3)s, %(COUNTRY_m3)s, %(TOTAL_SCORE_m3)s, %(QUANTITY_SCORE_m3)s, %(QUALITY_SCORE_m3)s, %(BUSINESS_SCORE_m3)s, %(SIGN_OF_CHANGE_IN_POSITION_m3)s), (%(POSITION_m4)s, %(CHANGE_IN_POSITION_FROM_2020_m4)s, %(CITY_m4)s, %(COUNTRY_m4)s, %(TOTAL_SCORE_m4)s, %(QUANTITY_SCORE_m4)s, %(QUALITY_SCORE_m4)s, %(BUSINESS_SCORE_m4)s, %(SIGN_OF_CHANGE_IN_POSITION_m4)s), (%(POSITION_m5)s, %(CHANGE_IN_POSITION_FROM_2020_m5)s, %(CITY_m5)s, %(COUNTRY_m5)s, %(TOTAL_SCORE_m5)s, %(QUANTITY_SCORE_m5)s, %(QUALITY_SCORE_m5)s, %(BUSINESS_SCORE_m5)s, %(SIGN_OF_CHANGE_IN_POSITION_m5)s), (%(POSITION_m6)s, %(CHANGE_IN_POSITION_FROM_2020_m6)s, %(CITY_m6)s, %(COUNTRY_m6)s, %(TOTAL_SCORE_m6)s, %(QUANTITY_SCORE_m6)s, %(QUALITY_SCORE_m6)s, %(BUSINESS_SCORE_m6)s, %(SIGN_OF_CHANGE_IN_POSITION_m6)s), (%(POSITION_m7)s, %(CHANGE_IN_POSITION_FROM_2020_m7)s, %(CITY_m7)s, %(COUNTRY_m7)s, %(TOTAL_SCORE_m7)s, %(QUANTITY_SCORE_m7)s, %(QUALITY_SCORE_m7)s, %(BUSINESS_SCORE_m7)s, %(SIGN_OF_CHANGE_IN_POSITION_m7)s), (%(POSITION_m8)s, %(CHANGE_IN_POSITION_FROM_2020_m8)s, %(CITY_m8)s, %(COUNTRY_m8)s, %(TOTAL_SCORE_m8)s, %(QUANTITY_SCORE_m8)s, %(QUALITY_SCORE_m8)s, %(BUSINESS_SCORE_m8)s, %(SIGN_OF_CHANGE_IN_POSITION_m8)s), (%(POSITION_m9)s, %(CHANGE_IN_POSITION_FROM_2020_m9)s, %(CITY_m9)s, %(COUNTRY_m9)s, %(TOTAL_SCORE_m9)s, %(QUANTITY_SCORE_m9)s, %(QUALITY_SCORE_m9)s, %(BUSINESS_SCORE_m9)s, %(SIGN_OF_CHANGE_IN_POSITION_m9)s)]
+[parameters: {'POSITION_m0': 1, 'CHANGE_IN_POSITION_FROM_2020_m0': '0', 'CITY_m0': 'San Francisco Bay', 'COUNTRY_m0': ' United States', 'TOTAL_SCORE_m0': 328.966, 'QUANTITY_SCORE_m0': 29.14, 'QUALITY_SCORE_m0': 296.02, 'BUSINESS_SCORE_m0': 3.8, 'SIGN_OF_CHANGE_IN_POSITION_m0': None, 'POSITION_m1': 2, 'CHANGE_IN_POSITION_FROM_2020_m1': '0', 'CITY_m1': 'New York', 'COUNTRY_m1': ' United States', 'TOTAL_SCORE_m1': 110.777, 'QUANTITY_SCORE_m1': 11.43, 'QUALITY_SCORE_m1': 95.55, 'BUSINESS_SCORE_m1': 3.8, 'SIGN_OF_CHANGE_IN_POSITION_m1': None, 'POSITION_m2': 3, 'CHANGE_IN_POSITION_FROM_2020_m2': '3', 'CITY_m2': 'Beijing', 'COUNTRY_m2': ' China', 'TOTAL_SCORE_m2': 66.049, 'QUANTITY_SCORE_m2': 5.01, 'QUALITY_SCORE_m2': 58.61, 'BUSINESS_SCORE_m2': 2.43, 'SIGN_OF_CHANGE_IN_POSITION_m2': '+', 'POSITION_m3': 4, 'CHANGE_IN_POSITION_FROM_2020_m3': '1', 'CITY_m3': 'Los Angeles Area', 'COUNTRY_m3': ' United States', 'TOTAL_SCORE_m3': 58.441, 'QUANTITY_SCORE_m3': 11.23, 'QUALITY_SCORE_m3': 43.41, 'BUSINESS_SCORE_m3': 3.8, 'SIGN_OF_CHANGE_IN_POSITION_m3': '+', 'POSITION_m4': 5, 'CHANGE_IN_POSITION_FROM_2020_m4': '2', 'CITY_m4': 'London', 'COUNTRY_m4': ' United Kingdom', 'TOTAL_SCORE_m4': 56.913, 'QUANTITY_SCORE_m4': 15.77, 'QUALITY_SCORE_m4': 37.44, 'BUSINESS_SCORE_m4': 3.7, 'SIGN_OF_CHANGE_IN_POSITION_m4': '-', 'POSITION_m5': 6, 'CHANGE_IN_POSITION_FROM_2020_m5': '2', 'CITY_m5': 'Boston Area', 'COUNTRY_m5': ' United States', 'TOTAL_SCORE_m5': 49.835, 'QUANTITY_SCORE_m5': 5.5, 'QUALITY_SCORE_m5': 40.53, 'BUSINESS_SCORE_m5': 3.8, 'SIGN_OF_CHANGE_IN_POSITION_m5': '-', 'POSITION_m6': 7, 'CHANGE_IN_POSITION_FROM_2020_m6': '3', 'CITY_m6': 'Shanghai', 'COUNTRY_m6': ' China', 'TOTAL_SCORE_m6': 42.162, 'QUANTITY_SCORE_m6': 3.57, 'QUALITY_SCORE_m6': 36.17, 'BUSINESS_SCORE_m6': 2.43, 'SIGN_OF_CHANGE_IN_POSITION_m6': '+', 'POSITION_m7': 8, 'CHANGE_IN_POSITION_FROM_2020_m7': '1', 'CITY_m7': 'Tel Aviv Area', 'COUNTRY_m7': ' Israel', 'TOTAL_SCORE_m7': 27.084, 'QUANTITY_SCORE_m7': 4.04, 'QUALITY_SCORE_m7': 19.92, 'BUSINESS_SCORE_m7': 3.13, 'SIGN_OF_CHANGE_IN_POSITION_m7': '-', 'POSITION_m8': 9, 'CHANGE_IN_POSITION_FROM_2020_m8': '0', 'CITY_m8': 'Moscow', 'COUNTRY_m8': ' Russia', 'TOTAL_SCORE_m8': 25.401, 'QUANTITY_SCORE_m8': 7.37, 'QUALITY_SCORE_m8': 15.64, 'BUSINESS_SCORE_m8': 2.39, 'SIGN_OF_CHANGE_IN_POSITION_m8': None, 'POSITION_m9': 10, 'CHANGE_IN_POSITION_FROM_2020_m9': '4', 'CITY_m9': 'Bangalore', 'COUNTRY_m9': ' India', 'TOTAL_SCORE_m9': 25.367, 'QUANTITY_SCORE_m9': 5.04, 'QUALITY_SCORE_m9': 17.95, 'BUSINESS_SCORE_m9': 2.38, 'SIGN_OF_CHANGE_IN_POSITION_m9': '+'}]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+
+Stack Trace:
+  File "/usr/local/lib/python3.12/site-packages/dagster/_core/execution/plan/utils.py", line 57, in op_execution_error_boundary
+    yield
+  File "/usr/local/lib/python3.12/site-packages/dagster/_utils/__init__.py", line 394, in iterate_with_context
+    next_output = next(iterator)
+                  ^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/dagster/_core/execution/plan/compute_generator.py", line 135, in _coerce_op_compute_fn_to_iterator
+    result = invoke_compute_fn(
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/dagster/_core/execution/plan/compute_generator.py", line 115, in invoke_compute_fn
+    return fn(context, **args_to_pass) if context_arg_provided else fn(**args_to_pass)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/dagster/dagster_home/assets.py", line 168, in startup_cities_to_snowflake
+    df.to_sql(
+  File "/usr/local/lib/python3.12/site-packages/pandas/util/_decorators.py", line 333, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pandas/core/generic.py", line 3109, in to_sql
+    return sql.to_sql(
+           ^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pandas/io/sql.py", line 844, in to_sql
+    return pandas_sql.to_sql(
+           ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pandas/io/sql.py", line 2030, in to_sql
+    total_inserted = sql_engine.insert_records(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pandas/io/sql.py", line 1579, in insert_records
+    raise err
+  File "/usr/local/lib/python3.12/site-packages/pandas/io/sql.py", line 1570, in insert_records
+    return table.insert(chunksize=chunksize, method=method)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pandas/io/sql.py", line 1121, in insert
+    num_inserted = exec_insert(conn, keys, chunk_iter)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/pandas/io/sql.py", line 1029, in _execute_insert_multi
+    result = conn.execute(stmt)
+             ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/sql/elements.py", line 527, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 2363, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/cursor.py", line 1142, in execute
+    Error.errorhandler_wrapper(self.connection, self, error_class, errvalue)
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/errors.py", line 298, in errorhandler_wrapper
+    handed_over = Error.hand_to_other_handler(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/errors.py", line 354, in hand_to_other_handler
+    cursor.errorhandler(connection, cursor, error_class, error_value)
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/errors.py", line 229, in default_errorhandler
+    raise error_class(
+
+The above exception was caused by the following exception:
+snowflake.connector.errors.ProgrammingError: 000904 (42000): SQL compilation error: error line 1 at position 52
+invalid identifier 'CHANGE_IN_POSITION_FROM_2020'
+
+Stack Trace:
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/usr/local/lib/python3.12/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/cursor.py", line 1142, in execute
+    Error.errorhandler_wrapper(self.connection, self, error_class, errvalue)
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/errors.py", line 298, in errorhandler_wrapper
+    handed_over = Error.hand_to_other_handler(
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/errors.py", line 354, in hand_to_other_handler
+    cursor.errorhandler(connection, cursor, error_class, error_value)
+  File "/usr/local/lib/python3.12/site-packages/snowflake/connector/errors.py", line 229, in default_errorhandler
+    raise error_class(
+

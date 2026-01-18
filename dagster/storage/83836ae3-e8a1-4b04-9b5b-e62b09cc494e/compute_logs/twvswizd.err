@@ -1,0 +1,13 @@
+2026-01-18 12:05:53 +0000 - dagster - DEBUG - __ASSET_JOB - 83836ae3-e8a1-4b04-9b5b-e62b09cc494e - 9124 - LOGS_CAPTURED - Started capturing logs in process (pid: 9124).
+2026-01-18 12:05:53 +0000 - dagster - DEBUG - __ASSET_JOB - 83836ae3-e8a1-4b04-9b5b-e62b09cc494e - 9124 - startup_cities_to_snowflake - STEP_START - Started execution of step "startup_cities_to_snowflake".
+2026-01-18 12:05:53 +0000 - dagster - INFO - __ASSET_JOB - 83836ae3-e8a1-4b04-9b5b-e62b09cc494e - startup_cities_to_snowflake - Connecting to MongoDB...
+2026-01-18 12:05:56 +0000 - dagster - INFO - __ASSET_JOB - 83836ae3-e8a1-4b04-9b5b-e62b09cc494e - startup_cities_to_snowflake - Creating Table structure in Snowflake...
+2026-01-18 12:05:57 +0000 - dagster - INFO - __ASSET_JOB - 83836ae3-e8a1-4b04-9b5b-e62b09cc494e - startup_cities_to_snowflake - Pushing data to Snowflake...
+/opt/dagster/dagster_home/assets.py:206: UserWarning: The provided table name 'STARTUP_CITIES' is not found exactly as such in the database after writing the table, possibly due to case sensitivity issues. Consider using lower case table names.
+  df.to_sql(
+2026-01-18 12:05:58 +0000 - dagster - INFO - __ASSET_JOB - 83836ae3-e8a1-4b04-9b5b-e62b09cc494e - startup_cities_to_snowflake - ✅ Pipeline Complete!
+2026-01-18 12:05:58 +0000 - dagster - DEBUG - __ASSET_JOB - 83836ae3-e8a1-4b04-9b5b-e62b09cc494e - 9124 - startup_cities_to_snowflake - STEP_OUTPUT - Yielded output "result" of type "Any". (Type check passed).
+2026-01-18 12:05:58 +0000 - dagster - DEBUG - __ASSET_JOB - 83836ae3-e8a1-4b04-9b5b-e62b09cc494e - startup_cities_to_snowflake - Writing file at: /opt/dagster/dagster_home/storage/startup_cities_to_snowflake using PickledObjectFilesystemIOManager...
+2026-01-18 12:05:58 +0000 - dagster - DEBUG - __ASSET_JOB - 83836ae3-e8a1-4b04-9b5b-e62b09cc494e - 9124 - startup_cities_to_snowflake - ASSET_MATERIALIZATION - Materialized value startup_cities_to_snowflake.
+2026-01-18 12:05:58 +0000 - dagster - DEBUG - __ASSET_JOB - 83836ae3-e8a1-4b04-9b5b-e62b09cc494e - 9124 - startup_cities_to_snowflake - HANDLED_OUTPUT - Handled output "result" using IO manager "io_manager"
+2026-01-18 12:05:58 +0000 - dagster - DEBUG - __ASSET_JOB - 83836ae3-e8a1-4b04-9b5b-e62b09cc494e - 9124 - startup_cities_to_snowflake - STEP_SUCCESS - Finished execution of step "startup_cities_to_snowflake" in 5.23s.
