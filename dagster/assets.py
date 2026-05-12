@@ -1,12 +1,15 @@
 from dagster import asset, Output, AssetExecutionContext
 import json
 import os
+import random
 import subprocess
+import time
 from datetime import datetime
 from dagster_aws.s3 import S3Resource
 from dagster_snowflake import SnowflakeResource
 from resources import WeatherAPIResource
 from pymongo import MongoClient, errors as pymongo_errors
+from botocore.exceptions import ClientError as BotoCoreClientError
 import pandas as pd
 from sqlalchemy import create_engine, text
 from typing import Any
@@ -19,6 +22,29 @@ def _require_env(name: str) -> str:
     if not value:
         raise EnvironmentError(f"Required environment variable '{name}' is not set.")
     return value
+
+
+class _RetryableError(Exception):
+    """Signals a transient failure that the caller should retry."""
+
+
+def _retry_with_backoff(func, *, retries=3, base_delay=1.0, retryable=(_RetryableError,), log=None):
+    """Retry func up to `retries` times with exponential backoff and jitter.
+
+    base_delay doubles on each attempt (1s → 2s → 4s by default).
+    A small random jitter is added to prevent thundering-herd when many
+    cities fail simultaneously and all retry at the same interval.
+    """
+    for attempt in range(1, retries + 1):
+        try:
+            return func()
+        except retryable as e:
+            if attempt == retries:
+                raise
+            delay = base_delay * (2 ** (attempt - 1)) + random.uniform(0, 0.3)
+            if log:
+                log.warning(f"Attempt {attempt}/{retries} failed: {e}. Retrying in {delay:.1f}s...")
+            time.sleep(delay)
 
 
 # 1. Setup paths
@@ -59,10 +85,34 @@ def weather_snapshots(
     if not unique_cities:
         raise ValueError("No cities to process — upstream asset returned an empty list.")
 
+    # Configurable delay between city requests to stay within WeatherAPI rate limits.
+    # Default 0.5s gives ~2 req/s, well within the free-tier limit of 1M calls/month.
+    rate_limit_delay = float(os.environ.get("WEATHER_API_RATE_LIMIT_DELAY", "0.5"))
+
     weather_reports = []
     failed_cities = []
+
     for city in unique_cities:
-        res = weather_api.fetch(city)
+        # Wrap the fetch in a helper so _retry_with_backoff can call it repeatedly.
+        # 429 (rate-limited) and 5xx (server errors) are transient — worth retrying.
+        # 4xx client errors are not retried; they fall through to the status check below.
+        def _fetch(city=city):
+            res = weather_api.fetch(city)
+            if res.status_code in (429, 500, 502, 503, 504):
+                raise _RetryableError(f"HTTP {res.status_code} for '{city}'")
+            return res
+
+        try:
+            res = _retry_with_backoff(_fetch, retries=3, base_delay=2.0, log=context.log)
+        except _RetryableError as e:
+            context.log.warning(f"Weather API transient failure for '{city}' after 3 attempts: {e} — skipping.")
+            failed_cities.append(city)
+            continue
+        except Exception as e:
+            context.log.warning(f"Unexpected error fetching weather for '{city}': {e} — skipping.")
+            failed_cities.append(city)
+            continue
+
         if res.status_code != 200:
             context.log.warning(f"Weather API returned {res.status_code} for '{city}' — skipping.")
             failed_cities.append(city)
@@ -82,6 +132,8 @@ def weather_snapshots(
             "extracted_at": datetime.now().isoformat()
         })
 
+        time.sleep(rate_limit_delay)
+
     if failed_cities:
         context.log.warning(f"Skipped {len(failed_cities)} cities due to API errors: {failed_cities}")
 
@@ -89,12 +141,22 @@ def weather_snapshots(
         raise ValueError(f"No weather data collected — all {len(unique_cities)} cities failed.")
 
     s3_key = f"weather_snapshots/batch_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    s3.get_client().put_object(
-        Bucket='s3-weather-api',
-        Key=s3_key,
-        Body=json.dumps(weather_reports, indent=4),
-        ContentType='application/json'
-    )
+    try:
+        _retry_with_backoff(
+            lambda: s3.get_client().put_object(
+                Bucket='s3-weather-api',
+                Key=s3_key,
+                Body=json.dumps(weather_reports, indent=4),
+                ContentType='application/json'
+            ),
+            retries=3,
+            base_delay=1.0,
+            retryable=(BotoCoreClientError,),
+            log=context.log
+        )
+    except BotoCoreClientError as e:
+        raise RuntimeError(f"S3 upload failed after 3 retries: {e}") from e
+
     context.add_output_metadata({
         "cities_processed": len(weather_reports),
         "s3_key": s3_key

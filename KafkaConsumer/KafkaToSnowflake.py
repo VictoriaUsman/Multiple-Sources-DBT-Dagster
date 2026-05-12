@@ -1,5 +1,6 @@
 import json
 import os
+import time
 import snowflake.connector
 from confluent_kafka import Consumer, TopicPartition, OFFSET_BEGINNING
 from datetime import datetime, timezone
@@ -73,18 +74,28 @@ try:
 
         print(f"\n📥 RECEIVED: {data['hostname']}")
 
-        try:
-            cursor.execute(
-                "INSERT INTO votertable (voter, country, city, contact_number, created_at) VALUES (%s, %s, %s, %s, %s)",
-                (data['hostname'], data['country'], data['city'], data['contact'], datetime.now(timezone.utc))
-            )
-            conn.commit()
-            print(f"❄️ PUSHED TO SNOWFLAKE: {data['hostname']}")
-        except snowflake.connector.errors.ProgrammingError as e:
-            print(f"❌ Snowflake query error at offset {msg.offset()}: {e}")
-        except snowflake.connector.errors.DatabaseError as e:
-            print(f"❌ Snowflake connection error: {e}")
-            raise
+        # Retry the INSERT on transient connection errors with exponential backoff.
+        # ProgrammingError (bad schema, type mismatch) is not retried — it won't fix itself.
+        # DatabaseError (connection dropped) is retried up to 3 times before re-raising.
+        for attempt in range(1, 4):
+            try:
+                cursor.execute(
+                    "INSERT INTO votertable (voter, country, city, contact_number, created_at) VALUES (%s, %s, %s, %s, %s)",
+                    (data['hostname'], data['country'], data['city'], data['contact'], datetime.now(timezone.utc))
+                )
+                conn.commit()
+                print(f"❄️ PUSHED TO SNOWFLAKE: {data['hostname']}")
+                break
+            except snowflake.connector.errors.ProgrammingError as e:
+                print(f"❌ Snowflake query error at offset {msg.offset()}: {e}")
+                break  # Schema/syntax errors won't resolve on retry
+            except snowflake.connector.errors.DatabaseError as e:
+                if attempt == 3:
+                    print(f"❌ Snowflake connection failed after 3 attempts: {e}")
+                    raise
+                delay = 2 ** (attempt - 1)
+                print(f"⚠️  Snowflake error (attempt {attempt}/3): {e}. Retrying in {delay}s...")
+                time.sleep(delay)
 
 except KeyboardInterrupt:
     print("\n🛑 Stopping...")

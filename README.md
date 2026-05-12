@@ -79,6 +79,15 @@ MongoDB failures distinguish `ServerSelectionTimeoutError` (network/host unreach
 **Resource cleanup**  
 MongoDB clients are closed in `finally` blocks regardless of whether extraction succeeds.
 
+**Retry with exponential backoff**  
+A `_retry_with_backoff()` helper in `assets.py` retries transient failures up to 3 times with exponential backoff (`base_delay * 2^(attempt-1)`) plus random jitter to prevent thundering-herd when multiple cities fail at the same time. HTTP 429 and 5xx responses are raised as `_RetryableError` and retried; 4xx client errors are not. The S3 upload is also retried on `BotoCoreClientError`. The Kafka consumer retries Snowflake `DatabaseError` (connection dropped) with the same backoff pattern but does not retry `ProgrammingError` (schema mismatch — won't fix itself).
+
+**Rate limiting**  
+`weather_snapshots` sleeps `WEATHER_API_RATE_LIMIT_DELAY` seconds (default `0.5s`, configurable via env) between city requests to stay within WeatherAPI rate limits. `apiTos3.py` uses a `requests.Session` with a `urllib3.Retry` adapter that handles 429 responses automatically, including the required backoff before re-attempting.
+
+**boto3 adaptive retry**  
+`apiTos3.py` configures the S3 client with `Config(retries={'max_attempts': 3, 'mode': 'adaptive'})` — boto3's adaptive mode backs off on throttling and adjusts retry timing based on observed error rates, which is safer than a fixed retry count.
+
 **dbt source tests**  
 `sources.yml` enforces `not_null` on every key column across all three source tables and `unique` on `STARTUP_CITIES.CITY` — data quality violations fail the dbt run before bad data reaches Silver.
 
