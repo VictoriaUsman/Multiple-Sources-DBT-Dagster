@@ -6,12 +6,20 @@ from datetime import datetime
 from dagster_aws.s3 import S3Resource
 from dagster_snowflake import SnowflakeResource
 from resources import WeatherAPIResource
-from pymongo import MongoClient
+from pymongo import MongoClient, errors as pymongo_errors
 import pandas as pd
 from sqlalchemy import create_engine, text
 from typing import Any
 from dagster_dbt import dbt_assets, DbtCliResource
 from pathlib import Path
+
+def _require_env(name: str) -> str:
+    """Retrieve a required environment variable, raising clearly if absent."""
+    value = os.environ.get(name)
+    if not value:
+        raise EnvironmentError(f"Required environment variable '{name}' is not set.")
+    return value
+
 
 # 1. Setup paths
 DBT_PROJECT_DIR = Path("/opt/dagster/dagster_home/multisource")
@@ -48,33 +56,50 @@ def weather_snapshots(
     s3: S3Resource
 ):
     """Fetch weather and upload batch to S3."""
+    if not unique_cities:
+        raise ValueError("No cities to process — upstream asset returned an empty list.")
+
     weather_reports = []
+    failed_cities = []
     for city in unique_cities:
         res = weather_api.fetch(city)
-        if res.status_code == 200:
-            data = res.json()
-            weather_reports.append({
-                "city": city,
-                "temp_c": data['current']['temp_c'],
-                "condition": data['current']['condition']['text'],
-                "extracted_at": datetime.now().isoformat()
-            })
+        if res.status_code != 200:
+            context.log.warning(f"Weather API returned {res.status_code} for '{city}' — skipping.")
+            failed_cities.append(city)
+            continue
 
-    if weather_reports:
-        # Generate a timestamped key
-        s3_key = f"weather_snapshots/batch_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-        s3.get_client().put_object(
-            Bucket='s3-weather-api',
-            Key=s3_key,
-            Body=json.dumps(weather_reports, indent=4),
-            ContentType='application/json'
-        )
-        context.add_output_metadata({
-            "cities_processed": len(weather_reports), 
-            "s3_key": s3_key
+        data = res.json()
+        current = data.get('current')
+        if not current or 'temp_c' not in current or 'condition' not in current:
+            context.log.warning(f"Unexpected API response structure for '{city}' — skipping.")
+            failed_cities.append(city)
+            continue
+
+        weather_reports.append({
+            "city": city,
+            "temp_c": current['temp_c'],
+            "condition": current['condition']['text'],
+            "extracted_at": datetime.now().isoformat()
         })
-    
-    # Return the data so the downstream asset can see how many rows to expect
+
+    if failed_cities:
+        context.log.warning(f"Skipped {len(failed_cities)} cities due to API errors: {failed_cities}")
+
+    if not weather_reports:
+        raise ValueError(f"No weather data collected — all {len(unique_cities)} cities failed.")
+
+    s3_key = f"weather_snapshots/batch_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    s3.get_client().put_object(
+        Bucket='s3-weather-api',
+        Key=s3_key,
+        Body=json.dumps(weather_reports, indent=4),
+        ContentType='application/json'
+    )
+    context.add_output_metadata({
+        "cities_processed": len(weather_reports),
+        "s3_key": s3_key
+    })
+
     return weather_reports
 
 @asset(
@@ -91,10 +116,12 @@ def s3_to_snowflake_weather(
     s3_bucket = "s3-weather-api"
     s3_path = f"s3://{s3_bucket}/weather_snapshots/"
     
-    aws_id = os.getenv("AWS_ACCESS_KEY_ID")
-    aws_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-    
-    # Fully qualifying the table name with the STAGING schema for clarity
+    if not weather_snapshots:
+        raise ValueError("No weather rows to load — upstream asset produced no data.")
+
+    aws_id = _require_env("AWS_ACCESS_KEY_ID")
+    aws_key = _require_env("AWS_SECRET_ACCESS_KEY")
+
     copy_sql = f"""
         COPY INTO ULTIMATE.STAGING.WEATHER_SNAPSHOTS
         FROM '{s3_path}'
@@ -130,16 +157,26 @@ def startup_cities_to_snowflake(context: AssetExecutionContext):
     Extracts data from MongoDB and loads it into Snowflake with strictly cleaned identifiers.
     """
     # --- 1. MONGODB EXTRACTION ---
-    uri = "mongodb://StartUpCities_Postgres_bellmudbit:5b5ae1d74a806ecd67359e23975a4b5ce07737b4@6jtrct.h.filess.io:27018/StartUpCities_Postgres_bellmudbit"
-    
+    uri = _require_env("MONGODB_URI")
+    db_name = os.environ.get("MONGODB_DB", "StartUpCities_Postgres_bellmudbit")
+
     context.log.info("Connecting to MongoDB...")
-    client = MongoClient(uri, authSource="StartUpCities_Postgres_bellmudbit", tls=False)
-    db = client['StartUpCities_Postgres_bellmudbit']
-    df = pd.DataFrame(list(db['startups'].find()))
-    client.close()
+    try:
+        client = MongoClient(uri, authSource=db_name, tls=False, serverSelectionTimeoutMS=5000)
+        client.admin.command('ping')
+    except pymongo_errors.ServerSelectionTimeoutError as e:
+        raise RuntimeError(f"Could not reach MongoDB within timeout: {e}") from e
+    except pymongo_errors.OperationFailure as e:
+        raise RuntimeError(f"MongoDB authentication failed: {e}") from e
+
+    try:
+        db = client[db_name]
+        df = pd.DataFrame(list(db['startups'].find()))
+    finally:
+        client.close()
 
     if df.empty:
-        raise Exception("No data found in MongoDB!")
+        raise ValueError(f"No documents found in MongoDB collection '{db_name}.startups'.")
 
     # --- 2. DATA CLEANING (STRICT SNOWFLAKE NAMING) ---
     if '_id' in df.columns:
@@ -149,13 +186,12 @@ def startup_cities_to_snowflake(context: AssetExecutionContext):
     # 2. Replace all non-alphanumeric chars (spaces, dots, hyphens) with underscores
     # 3. Ensure name doesn't start with a number (Snowflake requirement)
     clean_cols = []
-    for col in df.columns:
-        # Remove any leading/trailing whitespace
+    for i, col in enumerate(df.columns):
         c = str(col).strip().upper()
-        # Replace problematic characters
         c = c.replace(' ', '_').replace('.', '_').replace('-', '_')
-        # Final safety check: if it starts with a digit, prefix it
-        if c[0].isdigit():
+        if not c:
+            c = f"COL_{i}"
+        elif c[0].isdigit():
             c = f"YR_{c}"
         clean_cols.append(c)
     
@@ -169,12 +205,12 @@ def startup_cities_to_snowflake(context: AssetExecutionContext):
     })
 
     # --- 3. SNOWFLAKE LOAD ---
-    sf_user = "iantrisdc"
-    sf_password = "NL6pGafqzKy6Xrj"
-    sf_account = "PONEVOV-ZF78227"
-    sf_db = "ULTIMATE"
-    sf_schema = "STAGING"
-    sf_wh = "ULTIMATE"
+    sf_user = _require_env("SNOWFLAKE_USER")
+    sf_password = _require_env("SNOWFLAKE_PASSWORD")
+    sf_account = _require_env("SNOWFLAKE_ACCOUNT")
+    sf_db = os.environ.get("SNOWFLAKE_DATABASE", "ULTIMATE")
+    sf_schema = os.environ.get("SNOWFLAKE_SCHEMA", "STAGING")
+    sf_wh = os.environ.get("SNOWFLAKE_WAREHOUSE", "ULTIMATE")
 
     connection_string = (
         f"snowflake://{sf_user}:{sf_password}@{sf_account}/"

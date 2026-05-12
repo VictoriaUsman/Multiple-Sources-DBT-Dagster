@@ -1,11 +1,21 @@
 import json
+import os
 import snowflake.connector
 from confluent_kafka import Consumer, TopicPartition, OFFSET_BEGINNING
 from datetime import datetime, timezone
 
+
+def _require_env(name: str) -> str:
+    """Retrieve a required environment variable, raising clearly if absent."""
+    value = os.environ.get(name)
+    if not value:
+        raise EnvironmentError(f"Required environment variable '{name}' is not set.")
+    return value
+
+
 # --- 1. KAFKA CONFIG ---
 conf = {
-    'bootstrap.servers': '127.0.0.1:9094',
+    'bootstrap.servers': os.environ.get('KAFKA_BOOTSTRAP_SERVERS', '127.0.0.1:9094'),
     'group.id': 'manual_fix_group_99',
     'auto.offset.reset': 'earliest',
     'enable.auto.commit': False,
@@ -15,52 +25,66 @@ conf = {
 consumer = Consumer(conf)
 
 # DIRECT ASSIGNMENT: Skip the "Waiting" phase
-# We tell it: Go to host_info_topic, Partition 0, and start at the beginning
 tp = TopicPartition('host_info_topic', 0, OFFSET_BEGINNING)
 consumer.assign([tp])
 
 # --- 2. SNOWFLAKE CONFIG ---
 conn = snowflake.connector.connect(
-    user="iantrisdc",
-    password="NL6pGafqzKy6Xrj",
-    account="PONEVOV-ZF78227",
-    warehouse="ultimate",
-    database="ultimate",
-    schema="staging",
+    user=_require_env("SNOWFLAKE_USER"),
+    password=_require_env("SNOWFLAKE_PASSWORD"),
+    account=_require_env("SNOWFLAKE_ACCOUNT"),
+    warehouse=os.environ.get("SNOWFLAKE_WAREHOUSE", "ultimate"),
+    database=os.environ.get("SNOWFLAKE_DATABASE", "ultimate"),
+    schema=os.environ.get("SNOWFLAKE_SCHEMA", "staging"),
 )
 cursor = conn.cursor()
 
 print("✅ Manual Assignment Successful.")
 print("🚀 Reading directly from Partition 0... please wait 5 seconds...")
 
+REQUIRED_FIELDS = ('hostname', 'country', 'city', 'contact')
+
 # --- 3. MAIN LOOP ---
 try:
-    # Give it one initial poll to stabilize the connection
     consumer.poll(1.0)
-    
+
     while True:
-        msg = consumer.poll(1.0) 
+        msg = consumer.poll(1.0)
 
         if msg is None:
             continue
-            
+
         if msg.error():
             print(f"\n❌ Kafka Error: {msg.error()}")
             continue
 
-        # DATA RETRIEVED!
-        data = json.loads(msg.value().decode('utf-8'))
+        # Isolate JSON decode errors from downstream processing
+        try:
+            data = json.loads(msg.value().decode('utf-8'))
+        except (json.JSONDecodeError, UnicodeDecodeError) as e:
+            print(f"❌ Malformed message at offset {msg.offset()}: {e} — skipping.")
+            continue
+
+        # Validate all required fields are present and non-empty before touching Snowflake
+        missing = [f for f in REQUIRED_FIELDS if not data.get(f)]
+        if missing:
+            print(f"⚠️  Message at offset {msg.offset()} missing required fields {missing} — skipping.")
+            continue
+
         print(f"\n📥 RECEIVED: {data['hostname']}")
 
         try:
             cursor.execute(
                 "INSERT INTO votertable (voter, country, city, contact_number, created_at) VALUES (%s, %s, %s, %s, %s)",
-                (data.get('hostname'), data.get('country'), data.get('city'), data.get('contact'), datetime.now(timezone.utc))
+                (data['hostname'], data['country'], data['city'], data['contact'], datetime.now(timezone.utc))
             )
             conn.commit()
             print(f"❄️ PUSHED TO SNOWFLAKE: {data['hostname']}")
-        except Exception as e:
-            print(f"❌ Snowflake Error: {e}")
+        except snowflake.connector.errors.ProgrammingError as e:
+            print(f"❌ Snowflake query error at offset {msg.offset()}: {e}")
+        except snowflake.connector.errors.DatabaseError as e:
+            print(f"❌ Snowflake connection error: {e}")
+            raise
 
 except KeyboardInterrupt:
     print("\n🛑 Stopping...")

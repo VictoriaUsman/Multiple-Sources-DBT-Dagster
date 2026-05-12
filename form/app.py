@@ -1,18 +1,23 @@
 import json
+import os
+import sys
 from flask import Flask, render_template, redirect, url_for, flash
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired
+from wtforms.validators import DataRequired, Length
 
-# 1. IMPORT PRODUCER FIRST
+# 1. IMPORT PRODUCER FIRST — fail immediately if the library is missing
 try:
     from confluent_kafka import Producer
-    print("✅ Library 'confluent-kafka' loaded successfully!")
 except ImportError:
-    print("❌ ERROR: 'confluent-kafka' not found. Run 'pip install confluent-kafka'")
+    sys.exit("ERROR: 'confluent-kafka' not found. Run 'pip install confluent-kafka'")
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key'
+
+secret_key = os.environ.get('SECRET_KEY')
+if not secret_key:
+    raise EnvironmentError("Required environment variable 'SECRET_KEY' is not set.")
+app.config['SECRET_KEY'] = secret_key
 
 # 2. CONFIGURATION
 kafka_config = {
@@ -36,10 +41,10 @@ def delivery_report(err, msg):
 
 # 4. FORM DEFINITION
 class HostForm(FlaskForm):
-    hostname = StringField('Name', validators=[DataRequired()])
-    country = StringField('Country', validators=[DataRequired()])
-    city = StringField('City', validators=[DataRequired()])
-    contact_number = StringField('Contact Number', validators=[DataRequired()])
+    hostname = StringField('Name', validators=[DataRequired(), Length(min=2, max=100)])
+    country = StringField('Country', validators=[DataRequired(), Length(min=2, max=100)])
+    city = StringField('City', validators=[DataRequired(), Length(min=2, max=100)])
+    contact_number = StringField('Contact Number', validators=[DataRequired(), Length(min=7, max=20)])
     submit = SubmitField('Send to Snowflake')
 
 # 5. ROUTES

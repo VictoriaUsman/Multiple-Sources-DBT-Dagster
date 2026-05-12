@@ -2,225 +2,194 @@
 
 <img width="2842" height="1564" alt="6764FBD1-9F96-4284-94DC-A30022C27ABC" src="https://github.com/user-attachments/assets/ab011a95-5d2e-4aa2-97f8-3c016377a275" />
 
+# Multi-Source Data Platform — Dagster · dbt · Snowflake · Kafka
 
+**Author:** Ian Tristan Cultura  
+**Architecture:** End-to-end modern data platform  
+**Orchestration:** Dagster | **Transformation:** dbt | **Warehouse:** Snowflake  
+**Streaming:** Kafka | **Deployment:** Docker + EC2 | **CI/CD:** GitHub Actions  
+**Architecture Pattern:** Medallion (Bronze / Silver / Gold)
 
+---
 
-🚀 Multi-Source Data Platform with Dagster, dbt & Medallion Architecture
+## Project Overview
 
-Author: Ian Tristan Cultura
-Architecture: End-to-end modern data platform
-Orchestration: Dagster
-Transformation: dbt
-Warehouse: Snowflake
-Streaming: Kafka
-Deployment: Docker + EC2
-CI/CD: GitHub
-Monitoring: Flask
-Architecture Pattern: Medallion (Bronze / Silver / Gold)
+A production-style data engineering platform that ingests data from multiple sources — CSV files, external APIs, web forms, and Kafka streams — processes them through a Medallion Architecture, and serves clean, analytics-ready data to downstream systems.
 
-📌 Project Overview
+Fully containerized with Docker, orchestrated by Dagster, transformed with dbt, and deployed on AWS EC2.
 
-This project implements a production-style data engineering platform that ingests data from multiple sources (CSV, JSON, APIs, forms, streaming), processes them using a Medallion Architecture, and serves clean analytics-ready data to downstream systems.
+---
 
-It is fully containerized using Docker, orchestrated by Dagster, transformed with dbt, and deployed on AWS EC2 with CI/CD automation.
+## High-Level Architecture
 
-🏗️ High-Level Architecture
-
+```
 Data Sources
+├── CSV uploads           → MongoDB → Dagster → Snowflake STAGING
+├── WeatherAPI (REST)     → S3 (JSON) → Snowflake STAGING
+├── Flask web form        → Kafka topic → Snowflake STAGING
+└── Kafka stream events   → Snowflake STAGING
 
-📄 CSV uploads
+Snowflake Medallion Layers
+├── Bronze  — raw source data, no transformations
+├── Silver  — cleaned, typed, deduplicated (dbt)
+└── Gold    — aggregated, analytics-ready (dbt)
+```
 
-📦 JSON files
+---
 
-🌐 External APIs
+## Medallion Architecture
 
-📝 Web forms
+### Bronze
+- Raw ingested data, schema-on-read
+- No transformations; preserves source fidelity
+- Loaded into `ULTIMATE.STAGING` via Dagster assets
 
-🔥 Kafka streaming events
+### Silver
+- Standardized column names, trimmed strings, typed fields
+- Aggregations scoped to business entities (city-level rollups)
+- Managed by dbt models with `CURRENT_TIMESTAMP()` lineage markers
 
-Storage & Ingestion
+### Gold
+- Cross-source join across `silver_startup`, `silver_votertable`, `silver_weather`
+- Dynamic column selection via `adapter.get_columns_in_relation`
+- Single analytics table (`onebig_table`) consumed by BI / downstream APIs
 
-Amazon S3 – raw file landing zone
+---
 
-Google Cloud Storage – external storage integration
+## Error Handling & Validation
 
-Kafka – real-time ingestion
+This codebase handles failures intentionally — errors surface at the right layer with actionable messages rather than being silently swallowed.
 
-Dagster assets – orchestration of all ingestion steps
+**Environment validation at startup**  
+A `_require_env()` helper raises a clear `EnvironmentError` naming the missing variable before any pipeline work begins. No credentials are hardcoded.
 
-🧱 Medallion Architecture (Core Design)
-🥉 Bronze Layer
+**Specific exception types**  
+MongoDB failures distinguish `ServerSelectionTimeoutError` (network/host unreachable) from `OperationFailure` (bad credentials). Kafka consumers separate `JSONDecodeError` (malformed message, skip and continue) from `DatabaseError` (Snowflake connection lost, re-raise and stop). Each error type has a different correct response.
 
-Raw ingested data
+**Input & response structure validation**  
+- WeatherAPI responses are checked for the `current` key and required nested fields before access — a changed API schema logs which cities were skipped rather than crashing the run.
+- CSV files are validated for expected columns after load; missing columns produce a clear diff of what was found vs. what was required.
+- Kafka messages are checked for all required fields before any INSERT is attempted.
 
-No transformations
+**Intentional failures over silent bad state**  
+- `weather_snapshots` raises `ValueError` if every city fetch fails — an empty pipeline run is treated as a failure, not a success.
+- `startup_cities_to_snowflake` raises `ValueError` on an empty MongoDB result rather than loading zero rows silently.
+- `s3_to_snowflake_weather` validates AWS credentials exist before building the COPY SQL.
 
-Schema-on-read
+**Resource cleanup**  
+MongoDB clients are closed in `finally` blocks regardless of whether extraction succeeds.
 
-Stored in Snowflake (STAGING)
+**dbt source tests**  
+`sources.yml` enforces `not_null` on every key column across all three source tables and `unique` on `STARTUP_CITIES.CITY` — data quality violations fail the dbt run before bad data reaches Silver.
 
-🥈 Silver Layer
+---
 
-Cleaned & standardized data
+## Technology Stack
 
-Deduplication & type casting
+| Layer | Tools |
+|---|---|
+| Orchestration | Dagster |
+| Transformation | dbt (Snowflake dialect) |
+| Warehouse | Snowflake |
+| Object Storage | Amazon S3 |
+| Streaming | Kafka (Confluent) |
+| Web / Form Ingestion | Flask + Flask-WTF |
+| Source Database | MongoDB |
+| Containerization | Docker Compose |
+| Deployment | AWS EC2 |
+| CI/CD | GitHub Actions |
 
-Business logic applied
+---
 
-Managed by dbt models
+## Dockerized Services
 
-🥇 Gold Layer
-
-Analytics-ready datasets
-
-Aggregations & metrics
-
-Used for dashboards & downstream apps
-
-Exposed to Redshift / BI / APIs
-
-🔄 Orchestration with Dagster
-
-All pipelines are built as Dagster assets
-
-Dependencies are explicitly defined
-
-Schedules run automatically
-
-Can be triggered manually from Dagster UI
-
-Runs inside Docker containers
-
-Example:
-
-startup_cities_to_snowflake → bronze → silver → gold
-
-🔁 Data Transformation with dbt
-
-dbt models live inside the dbt_project
-
-Snowflake is the main warehouse
-
-dbt handles:
-
-Schema management
-
-Transformations
-
-Testing
-
-Documentation
-
-dbt runs are triggered by Dagster
-
-📦 Technology Stack
-Layer	Tools
-Orchestration	Dagster
-Transformation	dbt
-Storage	S3, GCS
-Warehouse	Snowflake
-Streaming	Kafka
-Serving	Redshift, Flask
-Containerization	Docker
-Deployment	EC2
-CI/CD	GitHub Actions
-Monitoring	Flask Dashboard
-🐳 Dockerized Services
-
-All services run in Docker:
-
-Dagster Webserver
-
-Dagster Daemon
-
-Postgres (Dagster metadata)
-
-Kafka
-
-dbt
-
-Flask monitoring app
-
-Run everything with:
-
+```
 docker compose up --build
+```
 
-🧪 Example Pipeline Flow
+Starts:
+- Dagster Webserver + Daemon
+- PostgreSQL (Dagster run storage)
+- Kafka broker
+- dbt (triggered by Dagster)
+- Flask form app
 
-User uploads CSV / JSON or submits form
+---
 
-Data lands in S3
+## Pipeline Flows
 
-Dagster ingests to Snowflake (STAGING)
+**Startup Cities (Batch)**
+```
+MongoDB.startups → startup_cities_to_snowflake → bronze_startup → silver_startup → onebig_table
+```
 
-dbt transforms data (Silver → Gold)
+**Weather (API → Cloud)**
+```
+unique_cities → WeatherAPI → S3 (JSON) → s3_to_snowflake_weather → bronze_weather → silver_weather → onebig_table
+```
 
-Gold tables are exposed to analytics
+**Voter Submissions (Streaming)**
+```
+Flask form → Kafka (host_info_topic) → KafkaToSnowflake consumer → VOTERTABLE → bronze_votertable → silver_votertable → onebig_table
+```
 
-Flask monitors pipeline health
+All three flows converge in the Gold layer `onebig_table`, joined on city.
 
-CI/CD deploys changes automatically
+---
 
-📊 Monitoring & Observability
+## Repository Structure
 
-Dagster UI for pipeline runs
-
-Flask dashboard for processing status
-
-Logs stored per asset
-
-Retry & failure handling built-in
-
-🚀 Deployment
-
-Fully deployed on AWS EC2
-
-Docker handles environment consistency
-
-Secrets managed with environment variables
-
-GitHub push triggers CI/CD pipeline
-
-🎯 Why This Project Matters
-
-This project demonstrates:
-
-Real-world data engineering architecture
-
-Production-grade orchestration
-
-Multi-source ingestion
-
-Batch + streaming processing
-
-Modern best practices (Medallion, dbt, Dagster)
-
-Cloud-native deployment
-
-CI/CD automation
-
-It is designed as a portfolio-grade project that mirrors what data engineers build in real companies.
-
-📁 Repository Structure
+```
 .
 ├── dagster/
-│   ├── assets.py
-│   ├── definitions.py
-│   └── resources.py
-├── dbt_project/
-│   ├── models/
-│   ├── tests/
-│   └── macros/
+│   ├── assets.py              # Dagster asset definitions (ETL pipelines)
+│   ├── definitions.py         # Resources, schedules, asset loading
+│   ├── resources.py           # WeatherAPIResource config class
+│   ├── Dockerfile
+│   └── multisource/           # dbt project
+│       ├── models/
+│       │   ├── bronze/        # Raw source views + sources.yml tests
+│       │   ├── silver/        # Cleaned & aggregated models
+│       │   └── gold/          # onebig_table cross-source join
+│       └── macros/            # trim_all_columns, generate_schema_name
+├── form/
+│   ├── app.py                 # Flask + Kafka producer
+│   └── templates/index.html
+├── KafkaConsumer/
+│   └── KafkaToSnowflake.py    # Kafka consumer → Snowflake loader
+├── CSV/
+│   └── csv_to_mongo.py        # CSV → MongoDB loader
+├── API to S3/
+│   └── apiTos3.py             # WeatherAPI → S3 uploader
 ├── docker-compose.yml
-├── flask_app/
-├── kafka/
-└── README.md
+└── pyproject.toml
+```
 
-👨‍💻 Author
+---
 
-Ian Tristan Cultura
-Data Engineer | Cloud | Analytics Engineering
+## Environment Variables
 
-📌 GitHub: https://github.com/VictoriaUsman
+All secrets are read from environment variables — nothing is hardcoded.
 
-📌 LinkedIn: (add yours here)
+| Variable | Used By |
+|---|---|
+| `MONGODB_URI` | `assets.py`, `csv_to_mongo.py` |
+| `MONGODB_DB` | `assets.py`, `csv_to_mongo.py` |
+| `SNOWFLAKE_USER` | `assets.py`, `KafkaToSnowflake.py` |
+| `SNOWFLAKE_PASSWORD` | `assets.py`, `KafkaToSnowflake.py` |
+| `SNOWFLAKE_ACCOUNT` | `assets.py`, `KafkaToSnowflake.py` |
+| `SNOWFLAKE_DATABASE` | `assets.py`, `KafkaToSnowflake.py` |
+| `SNOWFLAKE_WAREHOUSE` | `assets.py`, `KafkaToSnowflake.py` |
+| `AWS_ACCESS_KEY_ID` | `assets.py`, `apiTos3.py` |
+| `AWS_SECRET_ACCESS_KEY` | `assets.py`, `apiTos3.py` |
+| `WEATHER_API_KEY` | `apiTos3.py` |
+| `S3_BUCKET_NAME` | `apiTos3.py` |
+| `SECRET_KEY` | `form/app.py` |
+
+---
+
+## Author
+
+**Ian Tristan Cultura** — Data Engineer · Cloud · Analytics Engineering
+
+GitHub: https://github.com/VictoriaUsman

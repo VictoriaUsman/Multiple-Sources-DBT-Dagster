@@ -1,52 +1,61 @@
-import pandas as pd
-from pymongo import MongoClient
 import os
+import pandas as pd
+from pathlib import Path
+from pymongo import MongoClient, errors as pymongo_errors
 
-def push_csv_to_mongodb():
-    # 1. Your Exact URI from Filess.io
-    # I have cleaned this up to ensure Python parses it correctly
-    uri = "mongodb://StartUpCities_Postgres_bellmudbit:5b5ae1d74a806ecd67359e23975a4b5ce07737b4@6jtrct.h.filess.io:27018/StartUpCities_Postgres_bellmudbit"
 
+EXPECTED_COLUMNS = {'Position', 'City', 'Country', 'Total Score'}
+
+
+def push_csv_to_mongodb(file_path: str = None):
+    uri = os.environ.get("MONGODB_URI")
+    if not uri:
+        raise EnvironmentError("Required environment variable 'MONGODB_URI' is not set.")
+
+    db_name = os.environ.get("MONGODB_DB", "StartUpCities_Postgres_bellmudbit")
+
+    csv_path = Path(file_path or os.environ.get("CSV_FILE_PATH", ""))
+    if not csv_path.is_file():
+        raise FileNotFoundError(f"CSV file not found: '{csv_path}'.")
+
+    # 1. Read and validate CSV structure before touching MongoDB
     try:
-        print("Connecting to Filess.io...")
-        
-        # We specify authSource as the database name itself
-        client = MongoClient(
-            uri,
-            authSource="StartUpCities_Postgres_bellmudbit",
-            tls=False,  # Stick with False since port 27018 worked this way
-            serverSelectionTimeoutMS=5000
+        df = pd.read_csv(csv_path)
+    except pd.errors.ParserError as e:
+        raise ValueError(f"Could not parse CSV file '{csv_path}': {e}") from e
+
+    missing_cols = EXPECTED_COLUMNS - set(df.columns)
+    if missing_cols:
+        raise ValueError(
+            f"CSV is missing expected columns: {missing_cols}. "
+            f"Columns found: {list(df.columns)}"
         )
 
-        # Test if the password is accepted
+    df.columns = [c.replace(' ', '_').replace('.', '') for c in df.columns]
+    data_dict = df.to_dict('records')
+
+    print(f"Read {len(data_dict)} rows from '{csv_path}'.")
+
+    # 2. Connect and authenticate before attempting any writes
+    try:
+        client = MongoClient(uri, authSource=db_name, tls=False, serverSelectionTimeoutMS=5000)
         client.admin.command('ping')
-        print("✅ SUCCESS: Authenticated and Connected!")
+        print("✅ Connected to MongoDB.")
+    except pymongo_errors.ServerSelectionTimeoutError as e:
+        raise RuntimeError(f"Could not reach MongoDB within timeout: {e}") from e
+    except pymongo_errors.OperationFailure as e:
+        raise RuntimeError(f"MongoDB authentication failed: {e}") from e
 
-        # 2. Select the Database and Collection
-        db = client['StartUpCities_Postgres_bellmudbit']
-        collection = db['startups']
-
-        # 3. Process the CSV
-        full_path = "/Users/iantristancultura/Documents/Ultimate Project/CSV/Best Cities for Startups.csv"
-        
-        print(f"Reading {full_path}...")
-        df = pd.read_csv(full_path)
-        
-        # Clean column names (MongoDB doesn't like dots or spaces in keys)
-        df.columns = [c.replace(' ', '_').replace('.', '') for c in df.columns]
-        data_dict = df.to_dict('records')
-
-        # 4. Final Push
+    try:
+        collection = client[db_name]['startups']
         print(f"Uploading {len(data_dict)} rows...")
         collection.insert_many(data_dict)
-        print("✅ MISSION ACCOMPLISHED: Data is in MongoDB!")
-
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        print("\n💡 Check: Did you create the user 'StartUpCities_Postgres_bellmudbit' in the Filess.io dashboard?")
+        print("✅ Data loaded into MongoDB.")
+    except pymongo_errors.BulkWriteError as e:
+        raise RuntimeError(f"Bulk write failed — {e.details['nInserted']} rows inserted before error.") from e
     finally:
-        if 'client' in locals():
-            client.close()
+        client.close()
+
 
 if __name__ == "__main__":
     push_csv_to_mongodb()

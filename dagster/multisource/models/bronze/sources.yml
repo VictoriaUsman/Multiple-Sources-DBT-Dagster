@@ -7,17 +7,58 @@ sources:
     description: "Raw data landing zone for Kafka and External API snapshots."
     tables:
       - name: STARTUP_CITIES
-        description: "Data from the Flask/Kafka stream."
+        description: "Startup city rankings loaded from MongoDB via Dagster."
         columns:
-          - name: NAME
+          - name: CITY
+            description: "Name of the startup city."
+            tests:
+              - not_null
+              - unique
+          - name: POSITION
+            description: "Ranking position of the city."
+            tests:
+              - not_null
+          - name: COUNTRY
+            description: "Country the city belongs to."
+            tests:
+              - not_null
+          - name: TOTAL_SCORE
+            description: "Overall ranking score."
             tests:
               - not_null
 
       - name: VOTERTABLE
-        description: "Table containing voter registration information."
+        description: "Voter submissions ingested from the Flask/Kafka stream."
+        columns:
+          - name: VOTER
+            description: "Name of the submitting voter."
+            tests:
+              - not_null
+          - name: CITY
+            description: "City submitted by the voter."
+            tests:
+              - not_null
+          - name: COUNTRY
+            description: "Country submitted by the voter."
+            tests:
+              - not_null
 
       - name: WEATHER_SNAPSHOTS
-        description: "Periodic snapshots from the Weather API."
+        description: "Periodic weather snapshots fetched from WeatherAPI and staged via S3."
         columns:
           - name: CITY
-          - name: TEMPERATURE
+            description: "City for which the weather snapshot was taken."
+            tests:
+              - not_null
+          - name: TEMP_C
+            description: "Temperature in Celsius at snapshot time."
+            tests:
+              - not_null
+          - name: CONDITION
+            description: "Weather condition description."
+            tests:
+              - not_null
+          - name: EXTRACTED_AT
+            description: "Timestamp when the snapshot was collected."
+            tests:
+              - not_null
