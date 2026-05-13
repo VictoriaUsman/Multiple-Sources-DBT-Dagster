@@ -74,7 +74,12 @@ MongoDB failures distinguish `ServerSelectionTimeoutError` (network/host unreach
 **Intentional failures over silent bad state**  
 - `weather_snapshots` raises `ValueError` if every city fetch fails — an empty pipeline run is treated as a failure, not a success.
 - `startup_cities_to_snowflake` raises `ValueError` on an empty MongoDB result rather than loading zero rows silently.
-- `s3_to_snowflake_weather` validates AWS credentials exist before building the COPY SQL.
+- `s3_to_snowflake_weather` validates AWS credentials exist before building the COPY SQL, and checks every row in the Snowflake COPY INTO result — any `LOAD_FAILED` status raises `RuntimeError` rather than being silently logged.
+- `WeatherAPIResource.fetch()` raises `RuntimeError` with the city name on timeout or connection failure, instead of hanging indefinitely or surfacing a raw `requests` exception.
+- Kafka consumer errors (`message.error() is not None`) raise `RuntimeError` immediately rather than silently skipping the message.
+
+**Discord failure notifications**  
+A `discord_on_run_failure` sensor fires on every Dagster run failure and posts the job name, run ID, and error message to a Discord channel via webhook. Configured via the `DISCORD_WEBHOOK_URL` environment variable.
 
 **Resource cleanup**  
 MongoDB clients are closed in `finally` blocks regardless of whether extraction succeeds.
@@ -153,7 +158,7 @@ All three flows converge in the Gold layer `onebig_table`, joined on city.
 ├── dagster/
 │   ├── assets.py              # Dagster asset definitions (ETL pipelines)
 │   ├── definitions.py         # Resources, schedules, asset loading
-│   ├── resources.py           # WeatherAPIResource config class
+│   ├── resources.py           # WeatherAPIResource, DiscordResource config classes
 │   ├── Dockerfile
 │   └── multisource/           # dbt project
 │       ├── models/
@@ -194,6 +199,7 @@ All secrets are read from environment variables — nothing is hardcoded.
 | `WEATHER_API_KEY` | `apiTos3.py` |
 | `S3_BUCKET_NAME` | `apiTos3.py` |
 | `SECRET_KEY` | `form/app.py` |
+| `DISCORD_WEBHOOK_URL` | `definitions.py` (run failure notifications) |
 
 ---
 

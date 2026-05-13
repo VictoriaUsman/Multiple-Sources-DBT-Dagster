@@ -204,6 +204,9 @@ def s3_to_snowflake_weather(
         cursor.execute(copy_sql)
         
         results = cursor.fetchall()
+        failed = [row for row in results if row[1] != "LOADED"]
+        if failed:
+            raise RuntimeError(f"Snowflake COPY INTO had {len(failed)} failed file(s): {failed}")
         for row in results:
             context.log.info(f"File: {row[0]} | Status: {row[1]} | Rows Loaded: {row[3]}")
             

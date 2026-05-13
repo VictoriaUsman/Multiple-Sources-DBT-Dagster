@@ -26,6 +26,8 @@ def kafka_host_sensor(context: SensorEvaluationContext):
         data = json.loads(message.value().decode("utf-8"))
         context.log.info(f"Found new host: {data.get('hostname')}")
         yield RunRequest(run_key=f"msg_{message.offset()}")
+    elif message is not None:
+        raise RuntimeError(f"Kafka consumer error: {message.error()}")
     
     consumer.close()
 
